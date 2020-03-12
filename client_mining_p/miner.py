@@ -83,3 +83,4 @@ if __name__ == '__main__':
         if data['message'] == 'New Block Forged':
           coins_mined += 1
         print(f'coins{coins_mined}')
+ 
