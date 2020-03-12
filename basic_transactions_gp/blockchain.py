@@ -35,6 +35,19 @@ class Blockchain(object):
     hash =hashlib.sha256(block_string).hexdigest()
     return hash
   
+  def new_transaction(self, sender, recipient, amount):
+    '''
+    :param sender: <str> Address of the Recipient
+    :param recipient: <str> Address of the Recipient
+    :param amount: <int> Amount
+    :return: <int> The index of the `block` that will hold this transaction
+    '''
+    new_transaction = {
+      'sender' : sender,
+      'recipient' : recipient,
+      'amount' : amount
+    }
+    self.current_transactions.append(new_transaction)
   @property
   def last_block(self):
     return self.chain[-1]
@@ -45,18 +58,6 @@ class Blockchain(object):
     guess_hash = hashlib.sha256(guess).hexdigest()
     return guess_hash[:DIFFICULTY] == '0' * DIFFICULTY
 
-  def new_transaction(self, sender, recipient, amount):
-    '''
-    :param sender: <str> Address of the Recipient
-    :param recipient: <str> Address of the Recipient
-    :param amount: <int> Amount
-    :return: <int> The index of the `block` that will hold this transaction
-    '''
-    self.current_transactions.append({ 
-                                      'sender' : sender,
-                                      'recipient' : recipient,
-                                      'amount' : amount
-                                      })
     
 # Instantiate our Node
 app = Flask(__name__)
@@ -126,13 +127,6 @@ def get_last_block():
   
 @app.route('/transactions/new', methods=['POST'])
 
-'''
-* use `request.get_json()` to pull the data out of the POST
-* check that 'sender', 'recipient', and 'amount' are present
-* return a 400 error using `jsonify(response)` with a 'message'
-* upon success, return a 'message' indicating index of the block
-containing the transaction
-'''
 def post_new_trans():
   try:
     trans_data = request.get_json()
@@ -147,10 +141,15 @@ def post_new_trans():
     response = {'message' : 'missing transaction data'}
     return jsonify(response), 400
   
-  blockchain.new_transaction(trans_data['sender'], trans_data['recipient'], trans_data['amount'])
-    
-    
+  newtrans = blockchain.new_transaction(trans_data['sender'], trans_data['recipient'], trans_data['amount'])
+  #same as 
+  #newtrans = blockchain.new_transaction(trans_data.get('sender'), trans_data.get('recipient'), trans_data.get('amount'))
+  message = { 
+             'block_index': blockchain.last_block['index'],
+             'index' : index
+             }
   
+  return jsonify(message), 201 
 
 # Run the program on port 5000
 if __name__ == '__main__':
